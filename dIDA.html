@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIDA VOYAGES | Calculateur Premium</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        /* --- STYLE LUXE --- */
+        :root {
+            --gold: #d4af37;
+            --dark: #0f172a;
+        }
+        body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; color: #334155; }
+        h1, h2, .serif { font-family: 'Playfair Display', serif; }
+
+        /* Effets Inputs */
+        .input-group {
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+            background: white;
+        }
+        .input-group:focus-within {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
+        }
+
+        /* Tableaux */
+        .result-table th { background-color: #f1f5f9; color: #64748b; font-weight: 700; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em; padding: 12px; }
+        .result-table td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; font-weight: 600; }
+        .result-table tr:last-child td { border-bottom: none; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <nav class="bg-slate-900 text-white sticky top-0 z-50 shadow-xl border-b border-amber-500/30">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-tr from-amber-400 to-yellow-600 rounded-lg flex items-center justify-center text-slate-900 shadow-lg">
+                    <i class="fas fa-kaaba text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-widest text-white">DIDA VOYAGES</h1>
+                    <p class="text-[10px] text-amber-500 uppercase font-bold tracking-[0.3em]">Calculateur Omra</p>
+                </div>
+            </div>
+
+            <div class="flex items-center bg-slate-800 rounded-lg p-1 pr-3 border border-slate-700">
+                <button onclick="fetchRate()" class="p-2 text-slate-500 hover:text-amber-400 transition" title="API Taux Officiel">
+                    <i class="fas fa-sync-alt" id="apiIcon"></i>
+                </button>
+                <div class="h-6 w-px bg-slate-700 mx-2"></div>
+                <div class="text-right">
+                    <p class="text-[9px] text-slate-400 uppercase font-bold">Taux (1 SAR)</p>
+                    <div class="flex items-center gap-1">
+                        <input type="number" id="exchangeRate" value="65" class="w-14 bg-transparent text-amber-400 font-bold text-lg text-right outline-none" oninput="calculate()">
+                        <span class="text-xs text-slate-500 font-bold">DA</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 lg:p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <div class="lg:col-span-5 space-y-6">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">1. Configuration</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Nb. Personnes</label>
+                        <div class="input-group rounded-lg flex items-center px-3 h-10">
+                            <i class="fas fa-users text-slate-300 mr-2"></i>
+                            <input type="number" id="pax" value="2" min="1" class="w-full font-bold text-slate-800 outline-none bg-transparent">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[10px] uppercase font-bold text-slate-500 mb-1 block">Type Chambre</label>
+                        <div class="input-group rounded-lg flex items-center px-2 h-10 bg-slate-50">
+                            <select id="roomType" class="w-full font-bold text-slate-800 outline-none bg-transparent text-sm">
+                                <option value="4">Quadruple (÷4)</option>
+                                <option value="3">Triple (÷3)</option>
+                                <option value="2">Double (÷2)</option>
+                                <option value="1">Single (÷1)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-amber-500 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-cube text-amber-500"></i> MAKKAH</h3>
+                        <span id="nightsMakkahDisplay" class="text-[10px] font-bold bg-amber-50 text-amber-600 px-2 py-1 rounded border border-amber-100">0 Nuits</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <input type="date" id="dateInMakkah" class="text-xs p-2 bg-slate-50 rounded border outline-none focus:border-amber-400">
+                        <input type="date" id="dateOutMakkah" class="text-xs p-2 bg-slate-50 rounded border outline-none focus:border-amber-400">
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-amber-600 block mb-1">Prix par Nuitée (Chambre)</label>
+                        <div class="input-group flex rounded-lg h-10 overflow-hidden border-amber-200">
+                            <input type="number" id="priceMakkah" placeholder="0" class="w-full px-3 font-bold text-slate-800 outline-none">
+                            <select id="currMakkah" class="bg-amber-50 text-xs font-bold text-amber-700 px-2 outline-none border-l border-amber-100"><option value="SAR">SAR</option><option value="DZD">DZD</option></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-5 rounded-2xl shadow-sm border-l-4 border-emerald-500 relative overflow-hidden">
+                    <div class="flex justify-between items-center mb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-mosque text-emerald-500"></i> MEDINA</h3>
+                        <span id="nightsMedinaDisplay" class="text-[10px] font-bold bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-100">0 Nuits</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        <input type="date" id="dateInMedina" class="text-xs p-2 bg-slate-50 rounded border outline-none focus:border-emerald-400">
+                        <input type="date" id="dateOutMedina" class="text-xs p-2 bg-slate-50 rounded border outline-none focus:border-emerald-400">
+                    </div>
+
+                    <div>
+                        <label class="text-[9px] uppercase font-bold text-emerald-600 block mb-1">Prix par Nuitée (Chambre)</label>
+                        <div class="input-group flex rounded-lg h-10 overflow-hidden border-emerald-200">
+                            <input type="number" id="priceMedina" placeholder="0" class="w-full px-3 font-bold text-slate-800 outline-none">
+                            <select id="currMedina" class="bg-emerald-50 text-xs font-bold text-emerald-700 px-2 outline-none border-l border-emerald-100"><option value="SAR">SAR</option><option value="DZD">DZD</option></select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 border-b border-slate-100 pb-2">3. Frais / Personne</h2>
+                <div class="space-y-3">
+                    <div class="input-group flex items-center rounded-lg px-2 h-10">
+                        <span class="w-20 text-[10px] font-bold uppercase text-slate-400">Vol</span>
+                        <input type="number" id="priceVol" class="w-full font-bold text-slate-700 outline-none text-sm" placeholder="0">
+                        <select id="currVol" class="text-xs font-bold text-slate-500 outline-none"><option value="DZD">DZD</option><option value="SAR">SAR</option></select>
+                    </div>
+                    <div class="input-group flex items-center rounded-lg px-2 h-10">
+                        <span class="w-20 text-[10px] font-bold uppercase text-slate-400">Visa</span>
+                        <input type="number" id="priceVisa" class="w-full font-bold text-slate-700 outline-none text-sm" placeholder="0">
+                        <select id="currVisa" class="text-xs font-bold text-slate-500 outline-none"><option value="SAR">SAR</option><option value="DZD">DZD</option></select>
+                    </div>
+                    <div class="input-group flex items-center rounded-lg px-2 h-10">
+                        <span class="w-20 text-[10px] font-bold uppercase text-slate-400">Transfert</span>
+                        <input type="number" id="priceTrans" class="w-full font-bold text-slate-700 outline-none text-sm" placeholder="0">
+                        <select id="currTrans" class="text-xs font-bold text-slate-500 outline-none"><option value="SAR">SAR</option><option value="DZD">DZD</option></select>
+                    </div>
+                    <div class="input-group flex items-center rounded-lg px-2 h-10 bg-purple-50/50 border-purple-100">
+                        <span class="w-20 text-[10px] font-bold uppercase text-purple-400">Marge</span>
+                        <input type="number" id="priceMarge" class="w-full font-bold text-slate-700 outline-none text-sm" placeholder="0">
+                        <select id="currMarge" class="text-xs font-bold text-purple-600 bg-transparent outline-none"><option value="DZD">DZD</option><option value="SAR">SAR</option></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-7">
+            <div class="sticky top-24 bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
+                
+                <div class="bg-slate-900 p-6 text-center text-white relative overflow-hidden">
+                    <div class="absolute -top-10 -right-10 w-32 h-32 bg-amber-500 rounded-full blur-[50px] opacity-20"></div>
+                    <p class="text-[10px] uppercase font-bold tracking-[0.2em] text-amber-500 mb-2">Total Estimé Par Personne</p>
+                    <div class="text-5xl font-black tracking-tighter" id="finalPriceDZD">0 <span class="text-xl font-medium text-slate-400">DA</span></div>
+                    <div class="text-emerald-400 font-bold mt-1" id="finalPriceSAR">0 SAR</div>
+                </div>
+
+                <div class="p-6">
+                    <h3 class="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
+                        <i class="fas fa-list-ul"></i> Détails du calcul
+                    </h3>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full result-table text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th width="40%">Désignation</th>
+                                    <th width="30%">Prix (SAR)</th>
+                                    <th width="30%">Prix (DZD)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr><td colspan="3" class="text-center text-slate-300 italic py-4">En attente de saisie...</td></tr>
+                            </tbody>
+                            <tfoot class="bg-slate-50 border-t-2 border-slate-200">
+                                <tr>
+                                    <td class="text-slate-500 uppercase text-[10px]">Total Global (<span id="totalPaxDisplay">2</span> Pers)</td>
+                                    <td class="font-bold text-emerald-600" id="globalTotalSAR">0 SAR</td>
+                                    <td class="font-bold text-slate-900 text-lg" id="globalTotalDZD">0 DA</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 p-4 text-center border-t border-slate-100">
+                    <button onclick="window.print()" class="text-xs font-bold uppercase text-slate-400 hover:text-slate-800 transition">
+                        <i class="fas fa-print mr-2"></i> Imprimer le devis
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. API Taux (Mode Officiel)
+        async function fetchRate() {
+            const icon = document.getElementById('apiIcon');
+            icon.classList.add('fa-spin');
+            if(confirm("L'API charge le taux OFFICIEL. Pour le marché parallèle, entrez le taux manuellement. Continuer ?")) {
+                try {
+                    const res = await fetch('https://api.exchangerate-api.com/v4/latest/SAR');
+                    const data = await res.json();
+                    document.getElementById('exchangeRate').value = data.rates.DZD.toFixed(2);
+                } catch(e) { alert('Erreur API'); }
+            }
+            icon.classList.remove('fa-spin');
+            calculate();
+        }
+
+        // 2. Gestion des Nuits
+        function updateNights() {
+            const calc = (inId, outId, displayId) => {
+                const d1 = new Date(document.getElementById(inId).value);
+                const d2 = new Date(document.getElementById(outId).value);
+                if (d1 && d2 && !isNaN(d1) && !isNaN(d2)) {
+                    // Calcul différence en jours
+                    const diff = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)); 
+                    document.getElementById(displayId).innerText = diff + " Nuits";
+                    return diff;
+                }
+                document.getElementById(displayId).innerText = "0 Nuits";
+                return 0;
+            };
+            return {
+                makkah: calc('dateInMakkah', 'dateOutMakkah', 'nightsMakkahDisplay'),
+                medina: calc('dateInMedina', 'dateOutMedina', 'nightsMedinaDisplay')
+            };
+        }
+
+        // 3. Calcul Principal
+        function calculate() {
+            const rate = parseFloat(document.getElementById('exchangeRate').value) || 65;
+            const pax = parseFloat(document.getElementById('pax').value) || 1;
+            const roomDiv = parseFloat(document.getElementById('roomType').value) || 4;
+            const nights = updateNights();
+
+            // Fonction Helper: Convertit en SAR et DZD
+            // isHotel = true -> Applique la formule : (PrixNuit * Nuits) / Diviseur
+            const process = (priceId, currId, isHotel = false, nNights = 0) => {
+                let val = parseFloat(document.getElementById(priceId).value) || 0;
+                let curr = document.getElementById(currId).value;
+
+                // Logique HÔTEL : (Prix Nuit * Nbr Nuits) / PaxParChambre
+                if (isHotel) {
+                    if (nNights > 0) val = (val * nNights) / roomDiv;
+                    else val = 0; // Si pas de dates, coût 0
+                }
+
+                let sar = 0, dzd = 0;
+                if (curr === 'SAR') {
+                    sar = val;
+                    dzd = val * rate;
+                } else {
+                    dzd = val;
+                    sar = val / rate;
+                }
+                return { sar, dzd, inputVal: val }; // inputVal stocke le cout calculé
+            };
+
+            // Calculs individuels
+            const mak = process('priceMakkah', 'currMakkah', true, nights.makkah);
+            const med = process('priceMedina', 'currMedina', true, nights.medina);
+            const vol = process('priceVol', 'currVol');
+            const vis = process('priceVisa', 'currVisa');
+            const trs = process('priceTrans', 'currTrans');
+            const mrg = process('priceMarge', 'currMarge');
+
+            // Totaux
+            const totalSAR = mak.sar + med.sar + vol.sar + vis.sar + trs.sar + mrg.sar;
+            const totalDZD = mak.dzd + med.dzd + vol.dzd + vis.dzd + trs.dzd + mrg.dzd;
+            
+            const groupSAR = totalSAR * pax;
+            const groupDZD = totalDZD * pax;
+
+            // Affichage Header
+            const fmt = (n) => n.toLocaleString('fr-FR', {maximumFractionDigits: 0});
+            const fmtS = (n) => n.toLocaleString('fr-FR', {maximumFractionDigits: 2, minimumFractionDigits: 2});
+
+            document.getElementById('finalPriceDZD').innerHTML = `${fmt(totalDZD)} <span class="text-xl font-medium text-slate-400">DA</span>`;
+            document.getElementById('finalPriceSAR').innerText = `${fmtS(totalSAR)} SAR`;
+            
+            document.getElementById('totalPaxDisplay').innerText = pax;
+            document.getElementById('globalTotalSAR').innerText = `${fmtS(groupSAR)} SAR`;
+            document.getElementById('globalTotalDZD').innerText = `${fmt(groupDZD)} DA`;
+
+            // Remplissage Tableau (Vertical 3 Colonnes)
+            const row = (label, obj) => `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="text-slate-700">${label}</td>
+                    <td class="text-emerald-600">${fmtS(obj.sar)}</td>
+                    <td class="text-slate-900">${fmt(obj.dzd)}</td>
+                </tr>
+            `;
+
+            let rows = '';
+            if (mak.sar > 0) rows += row(`Makkah (${nights.makkah} Nuits / Part)`, mak);
+            if (med.sar > 0) rows += row(`Medina (${nights.medina} Nuits / Part)`, med);
+            if (vol.sar > 0) rows += row('Billet d\'avion', vol);
+            if (vis.sar > 0) rows += row('Frais Visa', vis);
+            if (trs.sar > 0) rows += row('Transferts', trs);
+            if (mrg.sar > 0) rows += row('Marge Agence', mrg);
+
+            document.getElementById('tableBody').innerHTML = rows || '<tr><td colspan="3" class="text-center text-slate-300 italic py-4">Remplissez le formulaire...</td></tr>';
+        }
+
+        // Listeners
+        document.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', calculate);
+            el.addEventListener('change', calculate);
+        });
+        calculate();
+    </script>
+</body>
+</html>
